@@ -1,9 +1,13 @@
-import { CreateEventPage } from "./features/create-event/ui/CreateEventPage"
+import { CreateEventPage } from "./features/create-event/ui/CreateEventPage";
+import ReservationPage from "./features/reservation/ui/ReservationPage";
 
 function App() {
   return (
-    <CreateEventPage />
-  )
+    <>
+      <CreateEventPage />
+      <ReservationPage />
+    </>
+  );
 }
 
-export default App
+export default App;
