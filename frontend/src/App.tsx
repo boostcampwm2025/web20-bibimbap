@@ -1,9 +1,13 @@
-import { CreateEventPage } from "./features/create-event/ui/CreateEventPage"
+import { Toaster } from "sonner";
+import { CreateEventPage } from "./features/create-event/ui/CreateEventPage";
 
 function App() {
   return (
-    <CreateEventPage />
-  )
+    <>
+      <Toaster position="top-center" richColors />
+      <CreateEventPage />
+    </>
+  );
 }
 
-export default App
+export default App;
