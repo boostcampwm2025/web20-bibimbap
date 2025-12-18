@@ -1,7 +1,10 @@
 import type { EventType, EventTemplate } from '../types';
 
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || '';
+const API_BASE = `${BACKEND_URL}/api`;
+
 export const fetchEventTypes = async (): Promise<EventType[]> => {
-  const response = await fetch('/api/event-types');
+  const response = await fetch(`${API_BASE}/event-types`);
   if (!response.ok) {
     throw new Error('Failed to fetch event types');
   }
@@ -9,7 +12,7 @@ export const fetchEventTypes = async (): Promise<EventType[]> => {
 };
 
 export const fetchEventTypesExpanded = async (): Promise<(EventType & { template: EventTemplate })[]> => {
-  const response = await fetch('/api/event-types/expanded');
+  const response = await fetch(`${API_BASE}/event-types/expanded`);
   if (!response.ok) {
     throw new Error('Failed to fetch event types with templates');
   }
@@ -18,7 +21,7 @@ export const fetchEventTypesExpanded = async (): Promise<(EventType & { template
 
 
 export const fetchEventTemplate = async (eventTypeId: number): Promise<EventTemplate> => {
-  const response = await fetch(`/api/event-types/${eventTypeId}/template`);
+  const response = await fetch(`${API_BASE}/event-types/${eventTypeId}/template`);
   if (!response.ok) {
     throw new Error('Failed to fetch event template');
   }
@@ -26,7 +29,7 @@ export const fetchEventTemplate = async (eventTypeId: number): Promise<EventTemp
 };
 
 export const downloadEventTemplate = async (eventTypeId: number, title: string) => {
-  const response = await fetch(`/api/event-types/${eventTypeId}/template/download`);
+  const response = await fetch(`${API_BASE}/event-types/${eventTypeId}/template/download`);
   if (!response.ok) {
     throw new Error('Failed to download template');
   }
@@ -46,7 +49,7 @@ export const uploadEventTemplate = async (eventTypeId: number, file: File): Prom
   const formData = new FormData();
   formData.append('file', file);
 
-  const response = await fetch(`/api/event-types/${eventTypeId}/template/upload`, {
+  const response = await fetch(`${API_BASE}/event-types/${eventTypeId}/template/upload`, {
     method: 'POST',
     body: formData,
   });

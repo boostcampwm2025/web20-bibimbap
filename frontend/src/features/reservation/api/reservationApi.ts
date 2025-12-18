@@ -1,7 +1,8 @@
 import type { ReservationRequest, ReservationResponse } from "../types";
 import type { SlotInfo } from "../types";
 
-const baseURL = "/api";
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || '';
+const baseURL = `${BACKEND_URL}/api`;
 
 export const reservationApi = {
   createReservation: async (

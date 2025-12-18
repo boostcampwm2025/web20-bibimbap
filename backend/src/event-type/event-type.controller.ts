@@ -13,6 +13,7 @@ import { FileInterceptor } from '@nestjs/platform-express';
 import { EventTypeService } from './event-type.service';
 import { EventType } from './entities/event-type.entity';
 import { EventTemplate } from './entities/event-template.entity';
+import type { Express } from 'express';
 
 @Controller('event-types')
 export class EventTypeController {
