@@ -91,7 +91,6 @@ export default function ReservationPage() {
               const current = parseInt(match[1], 10);
               const total = parseInt(match[2], 10);
               const newCurrent = current + 1;
-              const newLabel = `${newCurrent}/${total}`;
 
               return {
                 ...slot,
@@ -108,6 +107,40 @@ export default function ReservationPage() {
       setReservedSlotId(selectedSlotId);
       setSelectedSlotId(null);
     }
+  };
+
+  const handleCancel = async () => {
+    if (!reservedSlotId || !eventId) return;
+
+    setSlots((prevSlots) =>
+      prevSlots.map((slot) => {
+        if (slot.id === reservedSlotId) {
+          if (slot.rightLabel === "마감") {
+            return {
+              ...slot,
+              rightLabel: "0/1",
+              status: "available" as const,
+            };
+          }
+
+          const match = slot.rightLabel.match(/^(\d+)\/(\d+)$/);
+          if (match) {
+            const current = parseInt(match[1], 10);
+            const total = parseInt(match[2], 10);
+            const newCurrent = Math.max(current - 1, 0);
+
+            return {
+              ...slot,
+              rightLabel: `${newCurrent}/${total}`,
+              status: "available" as const,
+            };
+          }
+        }
+        return slot;
+      })
+    );
+
+    setReservedSlotId(null);
   };
 
   return (
@@ -163,6 +196,9 @@ export default function ReservationPage() {
           primaryLabel={isLoading ? "예약 중..." : "예약하기"}
           primaryDisabled={!selectedSlotId || isLoading}
           onPrimaryClick={handleSubmit}
+          secondaryLabel="예약 취소"
+          secondaryDisabled={!reservedSlotId || isLoading}
+          onSecondaryClick={handleCancel}
         />
       </main>
     </ReservationLayout>
