@@ -1,10 +1,13 @@
-import { useNavigate } from "react-router-dom";
-import { ICONS } from "../../../constants/icons.constants";
-import Badge from "../../../components/Badge";
-import Tag from "../../../components/Tag";
-import { formatDateRange } from "../../../utils/formatDate";
-import { STATUS_LABELS, PLATFORM_LABELS } from "../../../utils/reservationConstants";
-import type { Reservation } from "../types/reservation.types";
+import { useNavigate } from 'react-router-dom';
+import type { Reservation } from '../types/reservation.types';
+import { formatDateRange } from '../../../utils/formatDate';
+import Badge from '../../../components/Badge';
+import Tag from '../../../components/Tag';
+import {
+  STATUS_LABELS,
+  PLATFORM_LABELS,
+} from '../../../utils/reservationConstants';
+import { ICONS } from '../../../constants/icons.constants';
 
 interface ReservationCardProps {
   reservation: Reservation;
@@ -38,7 +41,9 @@ function ReservationCard({ reservation }: ReservationCardProps) {
         {reservation.description}
       </p>
       <div className="flex items-center justify-start">
-        <span className="text-sm text-text-secondary">{ICONS.CLOCK} {dateRange}</span>
+        <span className="text-sm text-text-secondary">
+          {ICONS.CLOCK} {dateRange}
+        </span>
       </div>
     </div>
   );

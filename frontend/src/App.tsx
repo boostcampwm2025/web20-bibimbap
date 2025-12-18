@@ -1,9 +1,9 @@
-import { BrowserRouter, Routes, Route } from "react-router-dom";
-import { Toaster } from "sonner";
-import { CreateEventPage } from "./features/create-event/ui/CreateEventPage";
-import ReservationPage from "./features/reservation/ui/ReservationPage";
-import { ReservationList } from "./features/reservation-list";
-import "./features/reservation-list/styles.css";
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { Toaster } from 'sonner';
+import { CreateEventPage } from './features/create-event/ui/CreateEventPage';
+import ReservationPage from './features/reservation/ui/ReservationPage';
+import { ReservationList } from './features/reservation-list';
+import './features/reservation-list/styles.css';
 
 function App() {
   return (
