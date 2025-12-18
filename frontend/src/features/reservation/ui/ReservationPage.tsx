@@ -1,4 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { useParams } from "react-router-dom";
+import { toast } from "sonner";
 import { PageHeader } from "./PageHeader";
 import { ReservationLayout } from "./ReservationLayout";
 import { SessionInfoCard } from "./SessionInfoCard";
@@ -7,9 +9,9 @@ import { SlotCard } from "./SlotCard";
 import { ReservationFooter } from "./ReservationFooter";
 import { useSSE } from "../../../hooks/useSSE";
 import { reservationApi } from "../api/reservationApi";
-import { toast } from "sonner";
 import type { CapacityUpdateEvent, SlotInfo } from "../types";
 import { getClientId } from "../../../utils/clientId";
+import { useReservation } from "../model/useReservation";
 
 type SlotItem = {
   id: number;
@@ -21,6 +23,9 @@ type SlotItem = {
 };
 
 export default function ReservationPage() {
+  const { eventId } = useParams<{ eventId: string }>();
+  const resolvedEventId = eventId ?? "event-1";
+  const { createReservation, isLoading } = useReservation();
   const [selectedSlotId, setSelectedSlotId] = useState<number | null>(null);
   const [reservedSlotId, setReservedSlotId] = useState<number | null>(null);
   const [hasSnapshot, setHasSnapshot] = useState(false);
@@ -134,24 +139,20 @@ export default function ReservationPage() {
   const handleSubmit = async () => {
     if (!selectedSlotId) return;
 
-    try {
-      const response = await reservationApi.createReservation({
-        eventId: "event-1", // 실제로는 동적으로 가져와야 함
-        userId: clientId,
-        slotId: selectedSlotId,
-      });
+    const result = await createReservation({
+      eventId: resolvedEventId,
+      userId: clientId,
+      slotId: selectedSlotId,
+    });
 
-      if (response.success) {
-        toast.success(response.message);
-        setReservedSlotId(selectedSlotId);
-        setSelectedSlotId(null);
-      } else {
-        toast.error(response.message);
-      }
-    } catch (error) {
-      console.error("예약 실패:", error);
-      toast.error("예약 처리 중 오류가 발생했습니다.");
+    if (result.success) {
+      setReservedSlotId(selectedSlotId);
+      setSelectedSlotId(null);
     }
+  };
+
+  const handleCancel = () => {
+    toast.info("예약 취소 기능은 아직 준비 중입니다.");
   };
 
   return (
@@ -204,9 +205,12 @@ export default function ReservationPage() {
           </SlotList>
         </SlotSection>
         <ReservationFooter
-          primaryLabel="예약 수정"
-          primaryDisabled={!selectedSlotId}
+          primaryLabel={isLoading ? "예약 중..." : "예약하기"}
+          primaryDisabled={!selectedSlotId || isLoading}
           onPrimaryClick={handleSubmit}
+          secondaryLabel="예약 취소"
+          secondaryDisabled={!reservedSlotId || isLoading}
+          onSecondaryClick={handleCancel}
         />
       </main>
     </ReservationLayout>

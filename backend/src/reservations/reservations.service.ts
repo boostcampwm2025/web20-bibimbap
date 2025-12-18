@@ -1,16 +1,21 @@
 import { Injectable } from '@nestjs/common';
+import { Subject, Observable, concat, of } from 'rxjs';
 import { CreateReservationDto } from './dto/create-reservation.dto';
 import { ReservationResponseDto } from './dto/reservation-response.dto';
 import { UpdateSlotCapacityDto } from './dto/update-slot-capacity.dto';
-import { Subject, Observable, concat, of } from 'rxjs';
-
-interface EventMetadata {
-  capacity: number;
-  reservedCount: number;
-  reservationStartDate: string;
-  reservationEndDate: string;
-  // TODO: 운영진이 설정 가능한 세부사항 늘어나면 ++
-}
+import type { Event } from './interfaces/event.interface';
+import { EventListItemDto } from './dto/event-list-response.dto';
+import { EventTransformer } from './utils/event-transformer';
+import { MOCK_EVENTS } from './mock/mock-events.data';
+import {
+  RESERVATION_ERROR_MESSAGES,
+  RESERVATION_SUCCESS_MESSAGES,
+} from './constants/error-messages.constant';
+import {
+  isAfterReservationPeriod,
+  isBeforeReservationPeriod,
+} from './utils/date-utils';
+import { generateReservationId } from './utils/id-generator';
 
 export interface CapacityUpdateEvent {
   snapshot: Array<{
@@ -20,17 +25,6 @@ export interface CapacityUpdateEvent {
   }>;
   updatedSlotId?: number;
   eventId?: string;
-}
-
-interface Event {
-  id: string;
-  title: string;
-  author: string;
-  description?: string;
-  date: string;
-  category: 'off' | 'review'; // 이벤트 카테고리 ++
-  metadata: EventMetadata;
-  createdAt: Date;
 }
 
 interface Reservation {
@@ -50,8 +44,6 @@ interface SlotInfo {
 
 @Injectable()
 export class ReservationsService {
-  // TODO: 나중에 DB?
-  // 동시성 여기서 제어해야하나? l
   private events: Map<string, Event> = new Map();
   private reservations: Map<string, Reservation> = new Map();
   private slots: SlotInfo[] = [
@@ -98,37 +90,8 @@ export class ReservationsService {
   public capacityUpdate$ = this.capacityUpdateSubject.asObservable();
 
   constructor() {
-    // 테스트용 Mock
-    this.events.set('event-1', {
-      id: 'event-1',
-      title: '시니어 리뷰 세션',
-      author: '운영진',
-      description: '시니어 개발자와의 1:1 리뷰',
-      date: '2025-12-20',
-      category: 'review',
-      metadata: {
-        capacity: 10,
-        reservedCount: 0,
-        reservationStartDate: '2025-12-01T00:00:00Z',
-        reservationEndDate: '2025-12-31T23:59:59Z',
-      },
-      createdAt: new Date(),
-    });
-
-    this.events.set('event-2', {
-      id: 'event-2',
-      title: '오프라인 네트워킹',
-      author: '운영진',
-      description: '캠퍼들과의 오프라인 모임',
-      date: '2025-12-25',
-      category: 'off',
-      metadata: {
-        capacity: 5,
-        reservedCount: 5, // 마감
-        reservationStartDate: '2025-12-01T00:00:00Z',
-        reservationEndDate: '2025-12-31T23:59:59Z',
-      },
-      createdAt: new Date(),
+    MOCK_EVENTS.forEach((event) => {
+      this.events.set(event.id, event);
     });
 
     // 테스트용 슬롯 정원 초기화 (프론트엔드의 SlotItem과 매칭)
@@ -236,24 +199,22 @@ export class ReservationsService {
     if (!event) {
       return {
         success: false,
-        message: '존재하지 않는 이벤트입니다.',
+        message: RESERVATION_ERROR_MESSAGES.EVENT_NOT_FOUND,
       };
     }
 
     const now = new Date();
-    const reservationEndDate = new Date(event.metadata.reservationEndDate);
-    const reservationStartDate = new Date(event.metadata.reservationStartDate);
 
-    if (now < reservationStartDate) {
+    if (isBeforeReservationPeriod(now, event.metadata.reservationStartDate)) {
       return {
         success: false,
-        message: '예약 신청 기간이 아닙니다.',
+        message: RESERVATION_ERROR_MESSAGES.RESERVATION_NOT_STARTED,
       };
     }
-    if (now > reservationEndDate) {
+    if (isAfterReservationPeriod(now, event.metadata.reservationEndDate)) {
       return {
         success: false,
-        message: '예약 신청 기간이 종료되었습니다.',
+        message: RESERVATION_ERROR_MESSAGES.RESERVATION_ENDED,
       };
     }
 
@@ -283,11 +244,12 @@ export class ReservationsService {
     if (slotCapacity.currentCount >= slotCapacity.maxCapacity) {
       return {
         success: false,
-        message: '예약이 마감되었습니다.',
+        message: RESERVATION_ERROR_MESSAGES.CAPACITY_FULL,
       };
     }
 
-    let finalReservationId: string;
+    let reservationId = existingReservation?.reservationId;
+    const isNewReservation = !existingReservation;
 
     // 기존 예약이 있으면 이전 슬롯 정원 감소
     if (existingReservation && previousSlotId !== undefined) {
@@ -300,18 +262,15 @@ export class ReservationsService {
         this.emitCapacityUpdate(previousSlotId, eventId);
       }
       // 기존 예약 업데이트
-      const reservation = this.reservations.get(
-        existingReservation.reservationId,
-      );
+      const reservation = this.reservations.get(reservationId);
       if (reservation) {
         reservation.slotId = slotId;
       }
-      finalReservationId = existingReservation.reservationId;
     } else {
       // 새 예약 생성
-      finalReservationId = `reservation-${Date.now()}`;
-      this.reservations.set(finalReservationId, {
-        id: finalReservationId,
+      reservationId = generateReservationId();
+      this.reservations.set(reservationId, {
+        id: reservationId,
         eventId,
         userId,
         slotId,
@@ -321,15 +280,17 @@ export class ReservationsService {
 
     // 새 슬롯 정원 증가 및 이벤트 발행
     slotCapacity.currentCount++;
-    event.metadata.reservedCount++;
+    if (isNewReservation) {
+      event.metadata.reservedCount++;
+    }
     this.emitCapacityUpdate(slotId, eventId);
 
     return {
       success: true,
       message: existingReservation
         ? '예약이 수정되었습니다.'
-        : '예약이 완료되었습니다.',
-      reservationId: finalReservationId,
+        : RESERVATION_SUCCESS_MESSAGES.RESERVATION_CREATED,
+      reservationId,
     };
   }
 
@@ -377,5 +338,10 @@ export class ReservationsService {
       currentCount: nextCurrentCount,
       maxCapacity: nextMaxCapacity,
     };
+  }
+
+  async findAllEvents(): Promise<EventListItemDto[]> {
+    const events = Array.from(this.events.values());
+    return EventTransformer.transformMany(events);
   }
 }
