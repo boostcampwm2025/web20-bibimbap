@@ -109,7 +109,7 @@ export default function ReservationPage() {
       const capacity = slotCapacities.get(base.id);
       const hasCapacity = Boolean(capacity);
 
-      if (!hasSnapshot || !hasCapacity) {
+      if (!hasSnapshot || !hasCapacity || !capacity) {
         return {
           ...base,
           rightLabel: "정원 확인 중",
