@@ -1,10 +1,12 @@
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { PageHeader } from "./PageHeader";
 import { ReservationLayout } from "./ReservationLayout";
 import { SessionInfoCard } from "./SessionInfoCard";
 import { SlotSection, SlotList } from "./SlotSection";
 import { SlotCard } from "./SlotCard";
 import { ReservationFooter } from "./ReservationFooter";
+import { useReservation } from "../model/useReservation";
+import { useParams } from "react-router-dom";
 
 type SlotItem = {
   id: number;
@@ -16,54 +18,53 @@ type SlotItem = {
 };
 
 export default function ReservationPage() {
+  const { eventId } = useParams<{ eventId: string }>();
+  const { createReservation, isLoading } = useReservation();
   const [selectedSlotId, setSelectedSlotId] = useState<number | null>(null);
   const [reservedSlotId, setReservedSlotId] = useState<number | null>(null);
 
-  const slots: SlotItem[] = useMemo(
-    () => [
-      {
-        id: 1,
-        dateLabel: "2024-12-20",
-        timeLabel: "14:00 - 15:00",
-        reviewer: "김멘토",
-        rightLabel: "0/1",
-        status: "available",
-      },
-      {
-        id: 2,
-        dateLabel: "2024-12-20",
-        timeLabel: "15:00 - 16:00",
-        reviewer: "이멘토",
-        rightLabel: "마감",
-        status: "disabled",
-      },
-      {
-        id: 3,
-        dateLabel: "2024-12-21",
-        timeLabel: "14:00 - 15:00",
-        reviewer: "박멘토",
-        rightLabel: "0/1",
-        status: "available",
-      },
-      {
-        id: 4,
-        dateLabel: "2024-12-21",
-        timeLabel: "15:00 - 16:00",
-        reviewer: "최멘토",
-        rightLabel: "0/1",
-        status: "available",
-      },
-      {
-        id: 5,
-        dateLabel: "2024-12-22",
-        timeLabel: "14:00 - 15:00",
-        reviewer: "강멘토",
-        rightLabel: "0/1",
-        status: "available",
-      },
-    ],
-    []
-  );
+  const [slots, setSlots] = useState<SlotItem[]>([
+    {
+      id: 1,
+      dateLabel: "2024-12-20",
+      timeLabel: "14:00 - 15:00",
+      reviewer: "김멘토",
+      rightLabel: "0/1",
+      status: "available",
+    },
+    {
+      id: 2,
+      dateLabel: "2024-12-20",
+      timeLabel: "15:00 - 16:00",
+      reviewer: "이멘토",
+      rightLabel: "마감",
+      status: "disabled",
+    },
+    {
+      id: 3,
+      dateLabel: "2024-12-21",
+      timeLabel: "14:00 - 15:00",
+      reviewer: "박멘토",
+      rightLabel: "0/1",
+      status: "available",
+    },
+    {
+      id: 4,
+      dateLabel: "2024-12-21",
+      timeLabel: "15:00 - 16:00",
+      reviewer: "최멘토",
+      rightLabel: "0/1",
+      status: "available",
+    },
+    {
+      id: 5,
+      dateLabel: "2024-12-22",
+      timeLabel: "14:00 - 15:00",
+      reviewer: "강멘토",
+      rightLabel: "0/1",
+      status: "available",
+    },
+  ]);
 
   const handleSlotClick = (slot: SlotItem) => {
     const isReserved = slot.id === reservedSlotId;
@@ -72,10 +73,74 @@ export default function ReservationPage() {
     setSelectedSlotId(slot.id);
   };
 
-  const handleSubmit = () => {
-    if (!selectedSlotId) return;
-    setReservedSlotId(selectedSlotId);
-    setSelectedSlotId(null);
+  const handleSubmit = async () => {
+    if (!selectedSlotId || !eventId) return;
+
+    const result = await createReservation({
+      eventId: eventId, // 이벤트 ID (임시)
+      userId: "user-123", // 임시 userId
+    });
+
+    if (result.success) {
+      // 슬롯 정원 업데이트 (임시)
+      setSlots((prevSlots) =>
+        prevSlots.map((slot) => {
+          if (slot.id === selectedSlotId) {
+            const match = slot.rightLabel.match(/^(\d+)\/(\d+)$/);
+            if (match) {
+              const current = parseInt(match[1], 10);
+              const total = parseInt(match[2], 10);
+              const newCurrent = current + 1;
+
+              return {
+                ...slot,
+                rightLabel:
+                  newCurrent >= total ? "마감" : `${newCurrent}/${total}`, // "0/2" → "1/2" or 마감
+                status:
+                  newCurrent >= total ? ("disabled" as const) : slot.status, // 마감 시 disabled
+              };
+            }
+          }
+          return slot;
+        })
+      );
+      setReservedSlotId(selectedSlotId);
+      setSelectedSlotId(null);
+    }
+  };
+
+  const handleCancel = async () => {
+    if (!reservedSlotId || !eventId) return;
+
+    setSlots((prevSlots) =>
+      prevSlots.map((slot) => {
+        if (slot.id === reservedSlotId) {
+          if (slot.rightLabel === "마감") {
+            return {
+              ...slot,
+              rightLabel: "0/1",
+              status: "available" as const,
+            };
+          }
+
+          const match = slot.rightLabel.match(/^(\d+)\/(\d+)$/);
+          if (match) {
+            const current = parseInt(match[1], 10);
+            const total = parseInt(match[2], 10);
+            const newCurrent = Math.max(current - 1, 0);
+
+            return {
+              ...slot,
+              rightLabel: `${newCurrent}/${total}`,
+              status: "available" as const,
+            };
+          }
+        }
+        return slot;
+      })
+    );
+
+    setReservedSlotId(null);
   };
 
   return (
@@ -128,9 +193,12 @@ export default function ReservationPage() {
           </SlotList>
         </SlotSection>
         <ReservationFooter
-          primaryLabel="예약 수정"
-          primaryDisabled={!selectedSlotId}
+          primaryLabel={isLoading ? "예약 중..." : "예약하기"}
+          primaryDisabled={!selectedSlotId || isLoading}
           onPrimaryClick={handleSubmit}
+          secondaryLabel="예약 취소"
+          secondaryDisabled={!reservedSlotId || isLoading}
+          onSecondaryClick={handleCancel}
         />
       </main>
     </ReservationLayout>
