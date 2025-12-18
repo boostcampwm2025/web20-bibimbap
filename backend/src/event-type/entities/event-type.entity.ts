@@ -1,4 +1,3 @@
-
 export class EventType {
   id: number;
   key: string;
