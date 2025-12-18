@@ -1,6 +1,39 @@
 @import "tailwindcss";
 
 @theme {
+  /* Common Colors - 모든 기능에서 공통으로 사용 */
   --color-primary: #005CFD;
   --color-secondary: #F0F4FA;
+
+  /* Common Spacing - 모든 기능에서 공통으로 사용 */
+  --spacing-xs: 4px;
+  --spacing-sm: 8px;
+  --spacing-md: 16px;
+  --spacing-lg: 24px;
+  --spacing-xl: 32px;
+
+  /* Common Font Sizes - 모든 기능에서 공통으로 사용 */
+  --font-size-sm: 12px;
+  --font-size-md: 14px;
+  --font-size-lg: 16px;
+  --font-size-xl: 20px;
+
+  /* Common Border Radius - 모든 기능에서 공통으로 사용 */
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+#root {
+  min-height: 100vh;
 }

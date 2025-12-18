@@ -1,0 +1,25 @@
+/* Reservation List Feature Styles */
+@import "tailwindcss";
+
+@theme {
+  /* Brand Colors */
+  --color-primary: #5B9FFF;
+  --color-primary-dark: #005CFD;
+
+  /* Status Colors */
+  --color-status-progress: #4CAF50;
+  --color-status-scheduled: #5B9FFF;
+  --color-status-ended: #9E9E9E;
+
+  /* Platform Colors */
+  --color-platform-web: #FF9800;
+  --color-platform-android: #8BC34A;
+  --color-platform-ios: #607D8B;
+
+  /* UI Colors */
+  --color-bg-main: #F0F4FA;
+  --color-card-bg: #FFFFFF;
+  --color-text-primary: #212121;
+  --color-text-secondary: #757575;
+  --color-border-main: #E0E0E0;
+}
