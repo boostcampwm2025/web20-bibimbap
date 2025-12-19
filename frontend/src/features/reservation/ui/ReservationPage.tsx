@@ -63,7 +63,7 @@ export default function ReservationPage() {
   }, []);
 
   // SSE 연결 및 실시간 정원 업데이트 수신
-  const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || '';
+  const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || "";
   useSSE<CapacityUpdateEvent>({
     url: `${BACKEND_URL}/api/reservations/capacity-updates`,
     onMessage: handleSSEMessage,
@@ -175,7 +175,7 @@ export default function ReservationPage() {
       <PageHeader
         brandLabel="bookstcamp 10기 멤버십"
         leftActionLabel="이벤트 생성"
-        onLeftActionClick={() => navigate('/create-event')}
+        onLeftActionClick={() => navigate("/create-event")}
         actionLabel="로그인"
         onActionClick={() => {}}
       />
@@ -222,6 +222,8 @@ export default function ReservationPage() {
           </SlotList>
         </SlotSection>
         <ReservationFooter
+          leftLabel="예약 생성"
+          onLeftClick={() => navigate("/create-event")}
           primaryLabel={isLoading ? "예약 중..." : "예약하기"}
           primaryDisabled={!selectedSlotId || isLoading}
           onPrimaryClick={handleSubmit}

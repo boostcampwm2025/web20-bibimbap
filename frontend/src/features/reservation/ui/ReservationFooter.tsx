@@ -28,6 +28,9 @@ type ReservationFooterProps = {
   secondaryLabel?: string;
   onSecondaryClick?: () => void;
   secondaryDisabled?: boolean;
+  leftLabel?: string;
+  onLeftClick?: () => void;
+  leftDisabled?: boolean;
 };
 
 export function ReservationFooter({
@@ -37,27 +40,47 @@ export function ReservationFooter({
   secondaryLabel,
   onSecondaryClick,
   secondaryDisabled,
+  leftLabel,
+  onLeftClick,
+  leftDisabled,
 }: ReservationFooterProps) {
   return (
     <footer className="w-full max-w-5xl rounded-md px-6 py-4">
-      <div className="flex justify-end gap-3">
-        {secondaryLabel && (
+      <div className="flex justify-between gap-3">
+        {/* 왼쪽 버튼 (이벤트 생성) */}
+        {leftLabel ? (
           <button
             type="button"
-            className="rounded-md bg-gray-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-500 disabled:cursor-not-allowed disabled:bg-gray-300"
-            onClick={onSecondaryClick}
-            disabled={secondaryDisabled}
+            className="rounded-md bg-green-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 disabled:cursor-not-allowed disabled:bg-green-300"
+            onClick={onLeftClick}
+            disabled={leftDisabled}
           >
-            {secondaryLabel}
+            {leftLabel}
           </button>
+        ) : (
+          <div />
         )}
 
-        {/* 예약하기 버튼 */}
-        <PrimaryButton
-          label={primaryLabel}
-          onClick={onPrimaryClick}
-          disabled={primaryDisabled}
-        />
+        {/* 오른쪽 버튼들 */}
+        <div className="flex gap-3">
+          {secondaryLabel && (
+            <button
+              type="button"
+              className="rounded-md bg-gray-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-500 disabled:cursor-not-allowed disabled:bg-gray-300"
+              onClick={onSecondaryClick}
+              disabled={secondaryDisabled}
+            >
+              {secondaryLabel}
+            </button>
+          )}
+
+          {/* 예약하기 버튼 */}
+          <PrimaryButton
+            label={primaryLabel}
+            onClick={onPrimaryClick}
+            disabled={primaryDisabled}
+          />
+        </div>
       </div>
     </footer>
   );
