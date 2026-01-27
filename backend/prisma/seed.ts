@@ -316,6 +316,26 @@ async function main() {
   });
   console.log('✓ 이벤트 4 생성:', event4.title);
 
+  // 4-5. 로드테스트 전용 이벤트 (COMMON)
+  const event99 = await prisma.event.upsert({
+    where: { id: 5 },
+    update: {},
+    create: {
+      id: 5,
+      title: '로드테스트 전용: 대기열',
+      description:
+        '대기열 부하테스트 전용 이벤트입니다. 실제 예약 테스트는 최소화합니다.',
+      track: Track.COMMON,
+      applicationUnit: ApplicationUnit.INDIVIDUAL,
+      creatorId: adminUserId,
+      organizationId: organization.id,
+      startTime: new Date('2026-01-01T00:00:00+09:00'),
+      endTime: new Date('2026-12-31T23:59:59+09:00'),
+      slotSchema: defaultSlotSchema,
+    },
+  });
+  console.log('✓ 이벤트 5 생성:', event99.title);
+
   // 5. 이벤트 슬롯 생성
   // 팀 이벤트(슬롯 1~4): 그룹 3, 4가 예약 → currentCount: 2
   // 개인 이벤트(슬롯 5~10): 개인별 예약
@@ -487,6 +507,35 @@ async function main() {
         f4: '17:30',
         f5: '대강당',
         f6: '취업 멘토',
+      },
+    },
+    // event5 (Load Test) 슬롯
+    {
+      id: 13,
+      eventId: 5,
+      maxCapacity: 10,
+      currentCount: 0,
+      extraInfo: {
+        f1: '로드테스트 슬롯 A',
+        f2: '2026-06-01',
+        f3: '10:00',
+        f4: '10:30',
+        f5: '온라인',
+        f6: 'LoadTest',
+      },
+    },
+    {
+      id: 14,
+      eventId: 5,
+      maxCapacity: 10,
+      currentCount: 0,
+      extraInfo: {
+        f1: '로드테스트 슬롯 B',
+        f2: '2026-06-01',
+        f3: '11:00',
+        f4: '11:30',
+        f5: '온라인',
+        f6: 'LoadTest',
       },
     },
   ];
