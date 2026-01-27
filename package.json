@@ -27,6 +27,7 @@
     "db:migrate:local": "dotenvx run -f .env.development -- sh -c 'DATABASE_URL=$DATABASE_URL_LOCAL pnpm --filter backend prisma migrate dev'",
     "db:generate:local": "dotenvx run -f .env.development -- sh -c 'DATABASE_URL=$DATABASE_URL_LOCAL pnpm --filter backend prisma generate'",
     "db:seed:local": "dotenvx run -f .env.development -- sh -c 'DATABASE_URL=$DATABASE_URL_LOCAL pnpm --filter backend prisma db seed'",
+    "db:seed:loadtest": "dotenvx run -f .env.development -- sh -c 'DATABASE_URL=$DATABASE_URL_LOCAL LOADTEST_COUNT=${LOADTEST_COUNT:-10000} pnpm --filter backend tsx prisma/seed.loadtest.ts'",
     "db:studio:local": "dotenvx run -f .env.development -- sh -c 'DATABASE_URL=$DATABASE_URL_LOCAL pnpm --filter backend prisma studio'"
   },
   "keywords": [],

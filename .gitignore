@@ -94,6 +94,8 @@ temp/
 .firebase/
 .terraform/
 
+load-test/k6/data/users.json
+
 CLAUDE.md
 .claude/
 .agents/
