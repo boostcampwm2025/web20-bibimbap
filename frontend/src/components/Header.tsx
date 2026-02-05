@@ -14,9 +14,9 @@ function Header({ navItems }: HeaderProps) {
   const { organization } = useOrg();
 
   return (
-    <header className="border-neutral-border-default sticky top-0 flex h-14 w-full items-center justify-between border-b bg-white/50 px-4 sm:px-8 backdrop-blur z-100">
-      <div className="flex h-full min-w-0 flex-1 items-center gap-3 sm:gap-5">
-        <Link to={orgId ? `/orgs/${orgId}` : '/'} className="flex shrink-0 gap-2">
+    <header className="border-neutral-border-default sticky top-0 z-100 flex h-14 w-full items-center justify-between border-b bg-white/50 px-8 backdrop-blur">
+      <div className="flex h-full items-center gap-5">
+        <Link to={orgId ? `/orgs/${orgId}` : '/'} className="flex gap-2">
           <img className="aspect-square h-6" src="/logo.webp" alt="로고" />
           <div className="hidden items-center gap-2 font-extrabold sm:flex">
             <span>bookstcamp</span>
@@ -43,8 +43,10 @@ function Header({ navItems }: HeaderProps) {
         </nav>
       </div>
       {user && (
-        <div className="flex shrink-0 items-center gap-2 sm:gap-3">
-          <span className="text-14 hidden text-gray-700 sm:inline">안녕하세요, {user.name}님</span>
+        <div className="flex items-center gap-3">
+          <span className="text-14 text-gray-700">
+            안녕하세요, {user.role === 'ADMIN' ? '운영진' : user.name}님
+          </span>
           <button
             type="button"
             aria-label="로그아웃"
